@@ -1,0 +1,27 @@
+id: integracao-clickup
+namespace: company.team
+
+triggers:
+  - id: webhook
+    type: io.kestra.plugin.core.trigger.Webhook
+    key: 4wjtkzwVGBM9yKnjm3yv8r
+
+tasks:
+  - id: get_task
+    type: io.kestra.plugin.core.http.Request
+    uri: "https://api.clickup.com/api/v2/task/{{ trigger.body.task_id }}"
+    method: GET
+    headers:
+      Authorization: "pk_87314041_BA1742QZ4PGFA9DFX509GYSQ1C6BS5RL"
+
+  - id: send_task_to_openhands
+    type: io.kestra.plugin.scripts.python.Commands
+    namespaceFiles:
+      enabled: true
+    inputFiles: 
+      input.json: "{{ outputs.get_task.body }}"
+    dependencies:
+      - kestra
+      - requests
+    commands:
+      - python send_task_to_openhands.py

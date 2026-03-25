@@ -1,0 +1,7 @@
+id: primeiro_flow
+namespace: company
+
+tasks:
+  - id: hello
+    type: io.kestra.plugin.core.log.Log
+    message: Hello World! 🚀

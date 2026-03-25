@@ -1,0 +1,29 @@
+id: cassowary_879490
+namespace: company.team
+
+# cada tasks é buldado um container docker
+# kestra builda o container com pythons e dependencias ja instaladas
+tasks:
+  - id: get_products_data
+    type: io.kestra.plugin.scripts.python.Script
+    dependencies:
+      - requests
+      - kestra
+    beforeCommands:
+      - pip install requests
+    script: |
+      from kestra import Kestra
+      import requests
+
+
+      def main():
+          response = requests.get(
+              url='https://dummyjson.com/products',
+          )
+          Kestra.outputs({'products': response.json().get('products')})
+
+
+      if __name__ == '__main__':
+          main()
+
+    
