@@ -1,0 +1,28 @@
+id: push_flow_to_git
+namespace: company
+description: subir flows e nameSpaces para um repositorio remoto
+
+tasks:
+  - id: commit_and_push
+    type: io.kestra.plugin.git.PushFlows
+
+    # Credenciais e Repositório
+    username: lauanderson-rael
+    password: "{{ secret('GITHUB_ACCESS_TOKEN') }}"
+    url: https://github.com/lauanderson-rael/flow-example
+    branch: develop
+
+    # Flows a serem comitados e enviados (opcao)
+    # flows:
+    #   - push_flow_to_git
+    #   - products_report
+    #   - integracao-clickup
+
+    sourceNamespace: company
+    # targetNamespace: prod
+    gitDirectory: flows
+    commitMessage: "changes to kestra flows"
+
+    # Incluir namespaces filhos
+    includeChildNamespaces: true 
+    dryRun: false

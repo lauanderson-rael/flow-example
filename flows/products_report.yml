@@ -1,0 +1,99 @@
+id: products_report
+namespace: company
+
+tasks:
+  - id: get_products_data
+    type: io.kestra.plugin.scripts.python.Script
+    dependencies:
+      - requests
+      - kestra
+    script: |
+      from kestra import Kestra
+      import requests
+
+      def main():
+          response = requests.get(
+              url='https://dummyjson.com/products',
+          )
+          Kestra.outputs({'products': response.json().get('products')})
+
+
+      if __name__ == '__main__':
+          main()
+
+  - id: generate_ai_report
+    type: io.kestra.plugin.scripts.python.Script
+    dependencies:
+      - kestra
+      - google-genai
+    script: |
+      from kestra import Kestra
+      from google import genai
+
+      def main():
+          # kestra: Isso aqui só funciona dentro do Kestra
+          products_data = {{ outputs.get_products_data['vars']['products'] }}
+
+          client = genai.Client(
+              api_key="{{kv(namespace=flow.namespace, key='GEMINI_API_KEY')}}"
+          )
+
+          system_prompt = """
+          Você é um assistente que gera relatórios de produtos para WhatsApp.
+          Seja direto, use emojis e formate de forma clara para mensagem mobile.
+          """
+
+          user_prompt = f"""
+          Com base nestes dados de produtos: {products_data}
+          Gere um relatório resumido e atrativo para WhatsApp.
+          """
+
+          response = client.models.generate_content(
+              model='gemini-2.5-flash',
+              contents=system_prompt + "\n" + user_prompt
+          )
+
+          report_text = response.text
+          print(report_text)
+          Kestra.outputs({'ai_report': report_text})
+
+      if __name__ == '__main__':
+          main()
+  
+  - id: send_report
+    type: io.kestra.plugin.scripts.python.Script
+    dependencies:
+      - requests
+      - kestra
+    script: |
+      from kestra import Kestra
+      import requests
+
+      TELEGRAM_BOT_TOKEN = "{{kv(namespace=flow.namespace, key='TELEGRAM_BOT_TOKEN')}}"
+      TELEGRAM_CHAT_ID = "{{kv(namespace=flow.namespace, key='TELEGRAM_CHAT_ID')}}"
+
+      def send_telegram_message(text):
+          url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+          payload = {
+              "chat_id": TELEGRAM_CHAT_ID,
+              "text": text
+          }
+
+          response = requests.post(url=url, json=payload)
+          return response.text
+
+      def main():
+          ai_report = """{{ outputs.generate_ai_report['vars']['ai_report'] }}"""
+          response = send_telegram_message(ai_report)
+          Kestra.outputs({'result': response})
+      if __name__ == '__main__':
+          main()
+    
+
+
+
+
+
+
+

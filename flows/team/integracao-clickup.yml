@@ -1,5 +1,5 @@
 id: integracao-clickup
-namespace: prod
+namespace: company.team
 
 triggers:
   - id: webhook

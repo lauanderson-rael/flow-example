@@ -1,5 +1,5 @@
 id: cassowary_879490
-namespace: prod
+namespace: company.team
 
 # cada tasks é buldado um container docker
 # kestra builda o container com pythons e dependencias ja instaladas
